@@ -11,7 +11,7 @@
 | ![simulation](docs/media/sim_browser_3v2.gif) | ![real knockdown](docs/media/real_duel_knockdown.gif) |
 | Blue defenders hold a V in front of the table (green circle). When the red attackers launch, the two outer defenders ram them while the middle one keeps goal. Then all three return to the V. | Left: the defender's camera, with the attacker right in front of tag 10. Right: the attacker's camera, hit, then on the carpet. |
 
-**Team 5:** Dhyey Mistry · Frania Chettiar · Sai Jayakar Vanam · Alay Shah
+**Team 5:** Frania Chettiar · Sai Jayakar Vanam · Alay Shah · Dhyey Mistry
 
 ---
 
@@ -197,7 +197,7 @@ All settings live in [`our_defense/defend_config.yaml`](drone_deployment_infra/o
 
 ## Credits
 
-- **Team 5:** Dhyey Mistry, Frania Chettiar, Sai Jayakar Vanam, Alay Shah.
+- **Team 5:** Frania Chettiar, Sai Jayakar Vanam, Alay Shah, Dhyey Mistry.
 - **[Action Space](https://github.com/jaromero3rd/Action_Space)** provided the hackathon, the Tello drones and the supporting kit included here: the Tello link and flight engine, AprilTag calibration and mapping, the swarm runner and telemetry, `drone_gui`, and the Isaac Lab simulation. Our work is in `drone_deployment_infra/our_defense/`, `approaches/` and `docs/`.
 - Third-party assets in the kit: see [`THIRD_PARTY.md`](THIRD_PARTY.md).
 

@@ -4,7 +4,7 @@ The Team 5 presentation at the Action Space hackathon ("Counter Anti Drone Swarm
 
 | # | Slide | Content |
 |---|---|---|
-| 1 | **Title** | Action Space Hackathon: Dhyey, Sai, Alay, Frania, Team 5 |
+| 1 | **Title** | Action Space Hackathon: Frania, Sai, Alay, Dhyey, Team 5 |
 | 2 | **Methodology** | The deployed system. Three Tellos fly autonomously using only their onboard cameras and the AprilTag map. A 10 Hz planner assigns defenders to the closest, most urgent attackers, with hysteresis. Assigned defenders ram at full speed while a spare guards the line to the table. Safety: speed cap, geofence, tag-loss search, and auto-landing on low battery, link drop or Ctrl-C. Shown with our browser GUI ([details](../drone_deployment_infra/our_defense/)). |
 | 3 | **Demo** | Video of the real flight at the venue |
 | 4 | **Implementation** | The arena: floor and wall AprilTags, the defended area, the drones |
