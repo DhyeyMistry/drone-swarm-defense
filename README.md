@@ -24,7 +24,21 @@ What makes it hard:
 - **Localization comes only from the forward camera.** AprilTags on the walls and floor are the only reference.
 - **The radio link is shaky**, with about 0.3 s of lag and video that sometimes drops.
 
-## How it works
+## Three approaches
+
+| | Approach | Highlights | Status |
+|---|---|---|---|
+| **1** | **AprilTag localization + telemetry pursuit** (flown at the competition): this README | Real Tellos knock attackers down; 60/60 knockdowns in the browser simulation | ✅ [code](drone_deployment_infra/our_defense/) · [results](docs/RESULTS.md) |
+| **2** | **Sim-to-sim: coordinated pursuit + PPO residual**, built in MuJoCo and validated unchanged in Isaac Lab | **0% breaches over 800 episodes**, vs 75–89% for the provided greedy baseline | 📝 [approaches/sim_to_sim_rl](approaches/sim_to_sim_rl/), code coming soon |
+| **3** | **Visual servo defense**: YOLO26 detection, depth-aware tracking, Social-GAN-style path forecasting | 100% / 91% detection (near / mid-range); 3/3 intercepts in simulation | 📝 [approaches/visual_servo](approaches/visual_servo/), code coming soon |
+
+| MuJoCo coordinator + chase (approach 2) | Visual servo "Drone hunter" (approach 3) |
+|---|---|
+| ![mujoco](docs/media/presentation/mujoco_coordinator_chase.jpg) | ![visual servo](docs/media/presentation/visual_servo_drone_hunter.jpg) |
+
+What the judges saw: [`docs/PRESENTATION.md`](docs/PRESENTATION.md).
+
+## How it works (approach 1)
 
 ```mermaid
 flowchart LR
@@ -167,7 +181,8 @@ All settings live in [`our_defense/defend_config.yaml`](drone_deployment_infra/o
 | Path | What |
 |---|---|
 | [`drone_deployment_infra/our_defense/`](drone_deployment_infra/our_defense/) | **Our project**: the defense system, simulation, tools and tests |
-| [`docs/`](docs/) | Results: reports, plots, GIFs, raw logs |
+| [`approaches/`](approaches/) | The other two approaches: sim-to-sim RL and visual servo (code coming soon) |
+| [`docs/`](docs/) | Results, the presentation summary, reports, plots, GIFs, raw logs |
 | `drone_deployment_infra/` (rest) | Action Space kit, real-drone side: Tello link and flight engine (`core/`), camera calibration and AprilTag mapping (`cal_and_map/`), swarm runner (`swarm_ops/`), GUI and telemetry, config |
 | `simulation_infra/` | Action Space kit: Isaac Lab simulation and training |
 | [`ACTION_SPACE_KIT.md`](ACTION_SPACE_KIT.md), [`KIT_SETUP_GUIDE.md`](KIT_SETUP_GUIDE.md) | The kit's original documentation |
@@ -183,9 +198,9 @@ All settings live in [`our_defense/defend_config.yaml`](drone_deployment_infra/o
 ## Credits
 
 - **Team 5:** Dhyey Mistry, Frania Chettiar, Sai Jayakar Vanam, Alay Shah.
-- **[Action Space](https://github.com/jaromero3rd/Action_Space)** provided the hackathon, the Tello drones and the supporting kit included here: the Tello link and flight engine, AprilTag calibration and mapping, the swarm runner and telemetry, `drone_gui`, and the Isaac Lab simulation. Our work is in `drone_deployment_infra/our_defense/` and `docs/`.
+- **[Action Space](https://github.com/jaromero3rd/Action_Space)** provided the hackathon, the Tello drones and the supporting kit included here: the Tello link and flight engine, AprilTag calibration and mapping, the swarm runner and telemetry, `drone_gui`, and the Isaac Lab simulation. Our work is in `drone_deployment_infra/our_defense/`, `approaches/` and `docs/`.
 - Third-party assets in the kit: see [`THIRD_PARTY.md`](THIRD_PARTY.md).
 
 ## License
 
-Our code and documentation (`drone_deployment_infra/our_defense/`, `docs/`, this README) are MIT licensed; see [`LICENSE`](LICENSE). The Action Space kit files remain the work of their authors and keep their own notices.
+Our code and documentation (`drone_deployment_infra/our_defense/`, `approaches/`, `docs/`, this README) are MIT licensed; see [`LICENSE`](LICENSE). The Action Space kit files remain the work of their authors and keep their own notices.
