@@ -1,0 +1,30 @@
+seed: 129
+central: false
+n_timesteps: 41943040
+policy: MlpPolicy
+n_steps: 256
+n_minibatches: 32
+gae_lambda: 0.95
+gamma: 0.995
+n_epochs: 5
+ent_coef: 0.0
+learning_rate: 5.0e-05
+clip_range: 0.2
+policy_kwargs:
+  activation_fn: nn.ELU
+  net_arch:
+  - 256
+  - 256
+  log_std_init: -0.5
+  squash_output: false
+  residual_width: 128
+  bound_mean: true
+vf_coef: 1.0
+max_grad_norm: 1.0
+target_kl: 0.01
+normalize_input: true
+normalize_value: true
+clip_obs: 10.0
+frame_stack: 8
+device: cuda:0
+freeze_normalization: true

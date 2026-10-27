@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sim Render Feed</title>
+<style>
+  :root { --bg: #f6f7f9; --card: #fff; --fg: #1b1f24; --muted: #5d6673; --line: #d9dde3; --accent: #2563eb; --ok: #15803d; --bad: #b91c1c; }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #0f1216; --card: #181c22; --fg: #e6e9ee; --muted: #9aa3ae; --line: #2a3038; --accent: #60a5fa; --ok: #4ade80; --bad: #f87171; }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--fg); font: 15px/1.45 system-ui, -apple-system, Segoe UI, Roboto, sans-serif; }
+  main { max-width: 1100px; margin: 0 auto; padding: 16px; }
+  h1 { font-size: 20px; margin: 4px 0 2px; }
+  .sub { color: var(--muted); font-size: 13px; margin-bottom: 14px; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 12px; margin-bottom: 14px; }
+  video { width: 100%; border-radius: 6px; background: #000; display: block; }
+  .meta { margin-top: 8px; font-size: 14px; }
+  .meta b { font-weight: 600; }
+  .result.ok { color: var(--ok); } .result.bad { color: var(--bad); }
+  #banner { display: none; background: var(--accent); color: #fff; border: 0; border-radius: 8px; padding: 8px 12px; font: inherit; cursor: pointer; margin-bottom: 12px; }
+  ul { list-style: none; margin: 0; padding: 0; }
+  li { padding: 8px 6px; border-top: 1px solid var(--line); cursor: pointer; display: flex; gap: 10px; flex-wrap: wrap; }
+  li:first-child { border-top: 0; }
+  li:hover, li.on { background: color-mix(in srgb, var(--accent) 12%, transparent); }
+  .ck { font-variant-numeric: tabular-nums; min-width: 190px; }
+  .muted { color: var(--muted); }
+  .empty { color: var(--muted); padding: 24px 6px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Simulation render feed</h1>
+  <div class="sub">One recorded episode of each new training checkpoint (real time, one frame per rc command). Checks for new videos every 30 s.</div>
+  <button id="banner">New video recorded — show it</button>
+  <div class="card">
+    <video id="player" controls playsinline muted></video>
+    <div class="meta" id="meta"><span class="muted">Waiting for the first recording…</span></div>
+  </div>
+  <div class="card"><ul id="list"><li class="empty">No videos yet. The first one appears after training saves a checkpoint and the recorder gets to it (at most one recording every 30 min, ~10 min each while training).</li></ul></div>
+</main>
+<script>
+let videos = [], current = null;
+const $ = (id) => document.getElementById(id);
+
+function steps(v) { return v.steps == null ? v.checkpoint : (v.steps / 1e6).toFixed(1) + "M steps"; }
+function cls(r) { return /^SUCCESS/.test(r) ? "ok" : (/collision|crash|FAIL/.test(r) ? "bad" : ""); }
+
+function show(v) {
+  current = v.file;
+  const p = $("player");
+  p.src = v.file; p.load(); p.play().catch(() => {});
+  $("meta").innerHTML = `<b>${v.task}</b> · run ${v.run} · ${steps(v)} · Kalman ${v.kalman ?? "?"} · recorded ${v.recorded.replace("T", " ")}<br>` +
+    `<span class="result ${cls(v.result)}">${v.result || ""}</span>`;
+  render();
+}
+
+function render() {
+  const ul = $("list");
+  if (!videos.length) return;
+  ul.innerHTML = "";
+  for (const v of videos) {
+    const li = document.createElement("li");
+    if (v.file === current) li.className = "on";
+    li.innerHTML = `<span class="ck">${v.run} · ${steps(v)}</span><span class="result ${cls(v.result)}">${v.result || ""}</span>`;
+    li.onclick = () => show(v);
+    ul.appendChild(li);
+  }
+}
+
+async function poll(first) {
+  try {
+    const r = await fetch("videos.json?t=" + Date.now(), { cache: "no-store" });
+    const next = await r.json();
+    const newer = next.length && (!videos.length || next[0].file !== videos[0].file);
+    videos = next;
+    if (first && videos.length) show(videos[0]);
+    else if (newer && current) $("banner").style.display = "inline-block";
+    else if (newer) show(videos[0]);
+    render();
+  } catch (e) { /* page served before the first index: try again later */ }
+}
+$("banner").onclick = () => { $("banner").style.display = "none"; show(videos[0]); };
+poll(true);
+setInterval(poll, 30000);
+</script>
+</body>
+</html>

@@ -1,0 +1,22 @@
+{
+  "episodes": 1024,
+  "seeds": [
+    17291,
+    41423,
+    89519,
+    130073
+  ],
+  "distinct_assignments": 24,
+  "all_four_successes": 1019,
+  "joint_success_rate": 0.9951171875,
+  "joint_success_wilson_95": [
+    0.9886206977231168,
+    0.9979126358177713
+  ],
+  "collision_failures": 5,
+  "crash_failures": 0,
+  "timeouts": 0,
+  "success_mean_duration_s": 17.67670480262075,
+  "qualification_passed": true,
+  "qualification": "Observed simulation reliability; does not establish real-flight reliability."
+}

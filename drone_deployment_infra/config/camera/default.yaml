@@ -1,0 +1,22 @@
+drone: default (copied from tello_3; replace per-drone when calibrated)
+ssid: TELLO-3
+bssid: 60:60:1F:C7:2B:E0
+serial: unsupported
+image_width: 960
+image_height: 720
+model: pinhole
+distortion_model: plumb_bob (k1, k2, p1, p2, k3)
+fix_k3: true
+camera_matrix: [[914.5379930571795, 0.0, 470.599937031912], [0.0, 914.4056412418461,
+    360.9839617497804], [0.0, 0.0, 1.0]]
+dist_coeffs: [0.0029517199782403128, -0.04933019369201234, -0.00041641722652209284,
+  -0.0011569701428611465, 0.0]
+rms_px: 0.6380287776753193
+n_frames: 117
+coverage: 1.0
+fx_spread_loo: 0.00407271099452131
+fy_spread_loo: 0.0038668744066826287
+max_fx_spread: 0.005
+date: '2026-10-07'
+source_sessions: [/home/sairam/tello_calibration/data/calib_tello_3_20261007_192958, /home/sairam/tello_calibration/data/calib_tello_3_20261007_193945,
+  /home/sairam/tello_calibration/data/calib_tello_3_20261007_194347]

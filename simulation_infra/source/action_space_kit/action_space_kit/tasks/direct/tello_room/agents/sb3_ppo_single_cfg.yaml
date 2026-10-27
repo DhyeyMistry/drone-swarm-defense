@@ -1,0 +1,31 @@
+# SB3 PPO for AS-Tello-Room-Single-v0: one drone, from the floor (for reward tuning).
+#
+# One drone: the observation is its own 25-number block (24 + taking-off flag), 8 stacked;
+# the action its 5 commands. Same PPO settings as sb3_ppo_cfg.yaml, so tuned rewards carry over.
+seed: 42
+central: true
+
+n_timesteps: !!float 1e8
+policy: 'MlpPolicy'
+n_steps: 256
+n_minibatches: 4
+gae_lambda: 0.95
+gamma: 0.995
+n_epochs: 5
+ent_coef: 0.005
+learning_rate: !!float 3e-4
+clip_range: 0.2
+policy_kwargs:
+  activation_fn: 'nn.ELU'
+  net_arch: [256, 256]
+  log_std_init: -0.5
+  squash_output: False
+vf_coef: 1.0
+max_grad_norm: 1.0
+target_kl: 0.02
+normalize_input: True
+normalize_value: False
+freeze_normalization: False  # warm-start option: preserve the checkpoint's observation/reward statistics
+clip_obs: 10.0
+frame_stack: 8
+device: "cuda:0"

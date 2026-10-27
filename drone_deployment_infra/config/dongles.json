@@ -1,0 +1,96 @@
+{
+  "description": "USB WiFi dongle -> Tello map. See tello_dongle_setup.py.",
+  "dongles": [
+    {
+      "number": 1,
+      "iface": "wlx6c4cbce345b3",
+      "mac": "6c:4c:bc:e3:45:b3",
+      "drone": "TELLO-1",
+      "ssid": "TELLO-1",
+      "video_port": 17001,
+      "note": "",
+      "bssid": "60:60:1F:C9:4B:CC"
+    },
+    {
+      "number": 2,
+      "iface": "wlx58d8125edaa6",
+      "mac": "58:d8:12:5e:da:a6",
+      "drone": "TELLO-2",
+      "ssid": "TELLO-2",
+      "video_port": 17002,
+      "note": "",
+      "bssid": "60:60:1F:FE:A0:CC"
+    },
+    {
+      "number": 3,
+      "iface": "wlx6c4cbce33375",
+      "mac": "6c:4c:bc:e3:33:75",
+      "drone": "TELLO-3",
+      "ssid": "TELLO-3",
+      "video_port": 17003,
+      "note": "",
+      "bssid": "60:60:1F:C7:2B:E0"
+    },
+    {
+      "number": 4,
+      "iface": "wlx58d8125ecf0d",
+      "mac": "58:d8:12:5e:cf:0d",
+      "drone": "TELLO-4",
+      "ssid": "TELLO-4",
+      "video_port": 17004,
+      "note": "",
+      "bssid": "60:60:1F:C7:43:9F"
+    },
+    {
+      "number": 5,
+      "iface": "wlx58d8125ebaf2",
+      "mac": "58:d8:12:5e:ba:f2",
+      "drone": "TELLO-5",
+      "ssid": "TELLO-5",
+      "video_port": 17005,
+      "note": "",
+      "bssid": "60:60:1F:AA:18:F1"
+    },
+    {
+      "number": 6,
+      "iface": "wlx6c4cbce335cf",
+      "mac": "6c:4c:bc:e3:35:cf",
+      "drone": "TELLO-6",
+      "ssid": "TELLO-6",
+      "video_port": 17006,
+      "note": "",
+      "bssid": "34:D2:62:FE:29:50"
+    },
+    {
+      "number": 7,
+      "iface": "wlx6c4cbce344fc",
+      "mac": "6c:4c:bc:e3:44:fc",
+      "drone": "TELLO-7",
+      "ssid": "TELLO-7",
+      "video_port": 17007,
+      "note": "",
+      "bssid": "34:D2:62:F2:4F:8E"
+    },
+    {
+      "number": 8,
+      "iface": "wlx58d8125ec53b",
+      "mac": "58:d8:12:5e:c5:3b",
+      "drone": "TELLO-8",
+      "ssid": "TELLO-8",
+      "video_port": 17008,
+      "note": "",
+      "bssid": "60:60:1F:58:04:90"
+    },
+    {
+      "number": 9,
+      "iface": "wlx58d8125eda77",
+      "mac": "58:d8:12:5e:da:77",
+      "drone": "TELLO-9",
+      "ssid": "TELLO-9",
+      "video_port": 17009,
+      "note": "",
+      "bssid": "60:60:1F:62:08:40"
+    }
+  ],
+  "updated": "2026-10-06T19:27:53-0400"
+}

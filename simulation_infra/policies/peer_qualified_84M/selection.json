@@ -1,0 +1,8 @@
+{
+  "checkpoint": "/home/jaimeromero/Action_Space_policy_fixes/simulation_infra/logs/sb3/AS-Tello-Room-Peer-v0/2026-10-14_23-05-57/model_84760576_steps.zip",
+  "checkpoint_sha256": "603768969b32d4bb70a67f73d6a31aed28fd0ee112d18eb39163a3264d02ef08",
+  "normalizer_sha256": "0f488c99b5abd3fb7ede159c812365107b68f1c5c936ceacc41ed7a612ad5eb3",
+  "development_successes": 381,
+  "development_trials": 384,
+  "frozen_for_qualification": true
+}

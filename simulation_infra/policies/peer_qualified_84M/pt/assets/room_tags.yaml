@@ -1,0 +1,36 @@
+# AprilTags for mapping. Read by tello_calibration/tags/detect.py; every value below is required.
+family: tag36h11
+origin_tag: 10          # this tag's frame becomes the map origin
+
+# Edge length of the BLACK square (not the white border), in mm, per tag id.
+# A tag with null size is still detected and gated (angle, ambiguity) but has no distance.
+# Tags 1-9 are the 5.2 in tags (132.08 mm); tag 10 is the 22.5 in origin (571.5 mm).
+sizes_mm:
+  1: 132.08
+  2: 132.08
+  3: 132.08
+  4: 132.08
+  5: 132.08
+  6: 132.08
+  7: 132.08
+  8: 132.08
+  9: 132.08
+  10: 571.5
+
+detector:               # pupil-apriltags options
+  quad_decimate: 2.0    # 2 = faster on 960x720; edges are refined back to full resolution
+  refine_edges: true
+  decode_sharpening: 0.25
+
+gate:                   # a detection is used only if ALL pass
+  # Gates mostly OFF so small motion blur in the video does not reject tags and we can
+  # link several at once for the map. Only a light decode-confidence floor is kept so a
+  # MISREAD tag id can't get planted in the map at the wrong place. Re-tighten for a
+  # high-quality static map (e.g. max_edge_width_px 3, min_ambiguity_ratio 3).
+  min_decision_margin: 10.0     # pupil's decode confidence (keep: guards against misreads)
+  min_side_px: 12.0             # ignore tiny specks only
+  max_edge_width_px: 1000.0     # OFF: accept motion-blurred edges (was 3.0, too strict)
+  min_edge_contrast: 15.0       # gray levels; only affects the (now unused) blur measure
+  max_view_angle_deg: 90.0      # OFF
+  min_ambiguity_ratio: 0.0      # OFF: accept even ambiguous (flip) poses
+  ambiguity_ignore_below_deg: 0.0

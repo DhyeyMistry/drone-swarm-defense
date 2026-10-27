@@ -1,0 +1,16 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "tello_calibration"
+version = "0.1.0"
+requires-python = ">=3.10"
+
+[tool.setuptools.packages.find]
+include = ["tello_calibration*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+# ROS Jazzy on PYTHONPATH auto-loads plugins that crash outside a ROS env.
+addopts = "-p no:launch_testing -p no:launch_ros"

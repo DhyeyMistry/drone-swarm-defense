@@ -1,0 +1,32 @@
+# SB3 PPO for AS-Tello-Approach-v0, one policy shared by all four drones.
+#
+# The policy sees the last `frame_stack` observations of its drone (8 x 38 = 304 inputs),
+# stacked after normalization by SB3's VecFrameStack.
+#
+# The shared-policy wrapper turns every drone into its own SB3 env row, so a rollout holds
+# n_steps * num_envs * 4 transitions: 64 * 512 * 4 = 131072 at the defaults.
+seed: 42
+
+n_timesteps: !!float 1e8
+policy: 'MlpPolicy'
+n_steps: 64
+n_minibatches: 4
+gae_lambda: 0.95
+gamma: 0.99
+n_epochs: 5
+ent_coef: 0.005
+learning_rate: !!float 3e-4
+clip_range: 0.2
+policy_kwargs:
+  activation_fn: 'nn.ELU'
+  net_arch: [128, 128]
+  log_std_init: -0.5
+  squash_output: False
+vf_coef: 1.0
+max_grad_norm: 1.0
+target_kl: 0.02
+normalize_input: True
+normalize_value: False
+clip_obs: 10.0
+frame_stack: 8
+device: "cuda:0"

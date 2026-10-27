@@ -1,0 +1,21 @@
+drone: tello_4
+ssid: TELLO-4
+bssid: 60:60:1F:C7:43:9F
+serial: unsupported
+image_width: 960
+image_height: 720
+model: pinhole
+distortion_model: plumb_bob (k1, k2, p1, p2, k3)
+fix_k3: true
+camera_matrix: [[931.779767130269, 0.0, 491.9037149756327], [0.0, 933.6760252921832,
+    356.51131838107005], [0.0, 0.0, 1.0]]
+dist_coeffs: [0.0017650920539209617, 0.027869119119005806, -0.0016518473765102567,
+  0.005017560960684814, 0.0]
+rms_px: 0.4329868022703072
+n_frames: 76
+coverage: 1.0
+fx_spread_loo: 0.005110885051544147
+fy_spread_loo: 0.005130170252913347
+max_fx_spread: 0.006
+date: '2026-10-06'
+source_sessions: [/home/hinokami/tello_calibration/data/calib_tello_4_20261006_204253, /home/hinokami/tello_calibration/data/calib_tello_4_20261006_210027]

@@ -1,0 +1,382 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tello Fleet</title>
+<style>
+:root{--bg:#0f1115;--panel:#181b22;--line:#2a2f3a;--text:#e6e8ee;--dim:#8a91a0;--ok:#2ecc71;--warn:#f1c40f;--bad:#e74c3c;--accent:#4aa3ff}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--text);font:14px/1.4 system-ui,sans-serif}
+header{position:sticky;top:0;z-index:3;display:flex;flex-wrap:wrap;gap:10px;align-items:center;padding:10px 16px;background:#0b0d11;border-bottom:1px solid var(--line)}
+header h1{font-size:18px;margin:0 6px 0 0}
+.counts{display:flex;gap:6px;flex-wrap:wrap}
+.count{background:#11141a;border:1px solid var(--line);border-radius:8px;padding:4px 10px;text-align:center;min-width:72px}
+.count b{display:block;font-size:18px;line-height:1.1}.count span{font-size:11px;color:var(--dim)}
+.count.ok b{color:var(--ok)}.count.warn b{color:var(--warn)}
+#simtag{background:#3d3412;color:var(--warn);border-radius:6px;padding:3px 8px;font-weight:600;font-size:12px}
+.spacer{flex:1}
+.telem{display:flex;gap:6px;align-items:center;flex-wrap:wrap;background:#11141a;border:1px solid var(--line);border-radius:8px;padding:4px 8px}
+.telem b{font-size:12px;color:var(--dim);font-weight:600}
+.telem input{width:56px}.telem input.dest{width:170px}
+.telem .t-stat{font-family:ui-monospace,monospace;font-size:11px;color:var(--dim);min-width:120px}
+.telem .t-stat.bad{color:var(--bad)}.telem .t-stat.warn{color:var(--warn)}
+button.on{background:#173d27;border-color:#2e7d4a;color:var(--ok)}
+.chip.attack{background:#7a1f1f;color:#ffd6d6}.chip.defense{background:#1f3f7a;color:#d6e6ff}
+.pill.attack{background:#5a1717;color:#ff9a9a}.pill.defense{background:#17305a;color:#9ac2ff}
+select{background:#11141a;color:var(--text);border:1px solid var(--line);border-radius:5px;padding:3px 4px;font:inherit;font-size:13px}
+button{background:#262b36;color:var(--text);border:1px solid var(--line);border-radius:6px;padding:6px 10px;font:inherit;cursor:pointer}
+button:hover{border-color:var(--accent)}
+button:disabled{opacity:.4;cursor:default}
+button.go{background:#1d4d2f;border-color:#2e7d4a}
+button.land{background:#5a3b10;border-color:#a8701d;font-weight:600}
+button.danger{background:#5c1a1a;border-color:#a33}
+button.armed{background:var(--bad);color:#fff}
+#landall{font-size:16px;padding:8px 18px}
+h3{margin:14px 16px 6px;font-size:13px;color:var(--dim);font-weight:600;text-transform:uppercase;letter-spacing:.06em}
+
+/* camera grid: 4 columns, at least 2 rows */
+#cams,#ctrls{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;padding:0 16px}
+@media (max-width:1100px){#cams,#ctrls{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:560px){#cams,#ctrls{grid-template-columns:minmax(0,1fr)}}
+.tile{position:relative;aspect-ratio:4/3;background:#000;border:2px solid var(--line);border-radius:8px;overflow:hidden;cursor:pointer}
+.tile.empty{background:repeating-linear-gradient(45deg,#11141a 0 10px,#14171e 10px 20px);cursor:default;display:flex;align-items:center;justify-content:center;color:#4a505c;font-size:13px}
+.tile img{width:100%;height:100%;object-fit:cover;display:block}
+.tile .ph{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--dim);font-size:13px;text-align:center;padding:12px}
+.tile .top,.tile .bot{position:absolute;left:6px;right:6px;display:flex;gap:4px;align-items:center;flex-wrap:wrap}
+.tile .top{top:6px}.tile .bot{bottom:6px}
+.chip{background:#000b;padding:1px 7px;border-radius:4px;font-size:12px;font-weight:600}
+.chip.n{background:var(--accent);color:#000}
+.chip.ok{color:var(--ok)}.chip.warn{color:var(--warn)}.chip.bad{color:var(--bad)}
+.tile.selected,.panel.selected{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
+.tile.flying{border-color:var(--warn)}
+.tile.selected.flying{border-color:var(--accent)}
+
+/* control grid */
+.panel{background:var(--panel);border:2px solid var(--line);border-radius:8px;padding:10px;display:flex;flex-direction:column;gap:7px;min-width:0}
+.panel.empty{background:transparent;border-style:dashed;color:#4a505c;align-items:center;justify-content:center;min-height:80px;font-size:13px}
+.title{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.title h2{margin:0;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pill{padding:1px 7px;border-radius:999px;font-size:11px;background:#262b36;color:var(--dim)}
+.pill.ok{background:#173d27;color:var(--ok)}.pill.warn{background:#3d3412;color:var(--warn)}.pill.bad{background:#3d1714;color:var(--bad)}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:4px}
+.stat{background:#11141a;border-radius:5px;padding:3px 6px;min-width:0}
+.stat b{display:block;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.stat span{font-size:10px;color:var(--dim)}
+.msg{font-family:ui-monospace,monospace;font-size:11px;color:var(--dim);min-height:2.8em;overflow-wrap:anywhere}
+.row{display:flex;gap:5px;flex-wrap:wrap;align-items:center}
+.row button{padding:5px 8px;font-size:13px}
+label{color:var(--dim);font-size:11px}
+input{background:#11141a;color:var(--text);border:1px solid var(--line);border-radius:5px;padding:4px 6px;font:inherit;font-size:13px;width:58px}
+input.ssid{flex:1;min-width:90px;width:auto}
+.pad{display:grid;grid-template-columns:repeat(3,34px);gap:3px}
+.pad button{padding:4px 0;font-size:13px}
+.help{color:var(--dim);font-size:12px;padding:12px 16px 20px}
+kbd{background:#262b36;border:1px solid var(--line);border-radius:4px;padding:0 5px;font-size:11px}
+</style>
+</head>
+<body>
+<header>
+  <h1>Tello Fleet</h1>
+  <div class="counts">
+    <div class="count ok"><b id="c-linked">0</b><span>connected</span></div>
+    <div class="count warn"><b id="c-flying">0</b><span>flying</span></div>
+    <div class="count"><b id="c-tags">0</b><span>see target</span></div>
+    <div class="count"><b id="c-slots">0</b><span id="c-slots-l">dongles</span></div>
+    <div class="count"><b id="c-teams">0 · 0</b><span>attack · defense</span></div>
+  </div>
+  <span id="simtag" hidden>SIMULATION</span>
+  <button class="danger" id="stopsim" hidden title="Shut the simulator server down. Click twice.">Stop sim</button>
+  <span class="spacer"></span>
+  <div class="telem" title="UDP JSON telemetry of every drone (team, pose, battery...). Format: drone_telemetry/README.md">
+    <b>Telemetry</b>
+    <button id="t-toggle">off</button>
+    <input id="t-hz" type="number" min="0.5" max="50" step="0.5" title="datagrams per second (0.5-50)"><label>Hz</label>
+    <input id="t-dest" class="dest" title="host:port, comma-separated" placeholder="127.0.0.1:9100">
+    <span class="t-stat" id="t-stat"></span>
+  </div>
+  <button id="connectall" title="Connect every drone that isn't connected yet">Connect all</button>
+  <button class="go" id="autoall" title="Every connected drone with a target tag: take off (2 s apart), fly to its tag, land in front of it">Auto all</button>
+  <button class="land" id="landall" title="Space">LAND ALL <kbd>Space</kbd></button>
+  <button class="danger" id="estopall" title="Cuts motors on every drone - they FALL. Click twice.">Motor stop all</button>
+</header>
+
+<h3>Cameras</h3>
+<section id="cams"></section>
+<h3>Controls</h3>
+<section id="ctrls"></section>
+
+<p class="help">
+  Click a camera or a control panel (or press <kbd>1</kbd>–<kbd>8</kbd>) to select a drone for keyboard flying
+  (manual mode, deadman: release to hover): <kbd>W</kbd>/<kbd>S</kbd> forward/back · <kbd>A</kbd>/<kbd>D</kbd> left/right ·
+  <kbd>↑</kbd>/<kbd>↓</kbd> up/down · <kbd>Q</kbd>/<kbd>E</kbd> yaw · <kbd>Space</kbd> land all.
+  Green outline = target tag, yellow = other tags. Yellow tile border = airborne.
+</p>
+<script>
+const camsEl = document.getElementById('cams'), ctrlsEl = document.getElementById('ctrls');
+const units = {};          // iface -> {tile, panel, r}
+let order = [];            // ifaces in display order
+let selected = null;
+const MANUAL = 35, MIN_SLOTS = 8, COLS = 4;
+
+async function post(path, body) {
+  try {
+    await fetch(path, {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body || {})});
+  } catch (e) { console.log('post failed', path, e); }
+}
+
+// Two-click arming for motor stop / stop sim: first click arms for 3 s, second fires.
+function armed(btn, fire, prompt = 'Again: motors OFF') {
+  btn.addEventListener('click', e => {
+    e.stopPropagation();
+    if (btn.classList.contains('armed')) { btn.classList.remove('armed'); btn.textContent = btn.dataset.label; fire(); return; }
+    btn.dataset.label = btn.dataset.label || btn.textContent;
+    btn.classList.add('armed'); btn.textContent = prompt;
+    setTimeout(() => { btn.classList.remove('armed'); btn.textContent = btn.dataset.label; }, 3000);
+  });
+}
+
+function makeUnit(d) {
+  const tile = document.createElement('div');
+  tile.className = 'tile';
+  tile.innerHTML = `<div class="ph">no video</div><img alt="" hidden>
+    <div class="top"><span class="chip n"></span><span class="chip t-team"></span><span class="chip t-name"></span><span class="spacer"></span><span class="chip t-bat"></span></div>
+    <div class="bot"><span class="chip t-mode"></span><span class="chip t-tag"></span></div>`;
+  const panel = document.createElement('section');
+  panel.className = 'panel';
+  panel.innerHTML = `
+    <div class="title"><span class="chip n"></span><h2></h2><span class="pill p-team"></span><span class="pill p-link"></span><span class="pill p-mode"></span><span class="pill p-cam" hidden>provisional cam</span></div>
+    <div class="stats">
+      <div class="stat"><b class="s-bat">–</b><span>battery</span></div>
+      <div class="stat"><b class="s-h">–</b><span>height</span></div>
+      <div class="stat"><b class="s-tags">–</b><span>tags</span></div>
+      <div class="stat"><b class="s-air">–</b><span>airborne</span></div>
+    </div>
+    <div class="msg"></div>
+    <div class="row">
+      <input class="ssid" placeholder="TELLO-…" title="WiFi SSID of the drone">
+      <button class="b-connect">Connect</button><button class="b-disconnect">Disconnect</button>
+    </div>
+    <div class="row">
+      <label>Team</label><select class="team" title="Overrides drone_telemetry/roles.yaml for this drone">
+        <option value="auto">auto</option><option value="attack">attack</option><option value="defense">defense</option><option value="none">none</option></select>
+      <label>Tag</label><input class="tag" type="number" min="0" max="586">
+      <label>Land at</label><input class="standoff" type="number" step="0.1" min="0.5" max="3"><label>m</label>
+      <button class="b-reset" hidden title="Simulation: put the drone back at a random start pose">Reset pose</button>
+    </div>
+    <div class="row">
+      <button class="go b-auto" title="Take off if needed, fly to the target tag, land in front of it">Auto</button>
+      <button class="b-takeoff">Take off</button>
+      <button class="b-hover">Hover</button>
+      <button class="land b-land">Land</button>
+      <button class="danger b-estop">Stop</button>
+    </div>
+    <div class="row">
+      <div class="pad">
+        <button data-rc="0,0,0,-1">⟲</button><button data-rc="0,1,0,0">▲</button><button data-rc="0,0,0,1">⟳</button>
+        <button data-rc="-1,0,0,0">◀</button><button data-rc="0,-1,0,0">▼</button><button data-rc="1,0,0,0">▶</button>
+      </div>
+      <div class="pad" style="grid-template-columns:34px">
+        <button data-rc="0,0,1,0">Up</button><button data-rc="0,0,-1,0">Dn</button>
+      </div>
+      <label>hold to move</label>
+    </div>`;
+  const q = s => panel.querySelector(s), qt = s => tile.querySelector(s);
+  const r = {img: qt('img'), ph: qt('.ph'), tn: tile.querySelectorAll('.n'), tname: qt('.t-name'), tbat: qt('.t-bat'),
+    tmode: qt('.t-mode'), tteam: qt('.t-team'), pteam: q('.p-team'), team: q('.team'), ttag: qt('.t-tag'), pn: q('.n'), name: q('h2'), link: q('.p-link'), mode: q('.p-mode'),
+    cam: q('.p-cam'), bat: q('.s-bat'), h: q('.s-h'), tags: q('.s-tags'), air: q('.s-air'), msg: q('.msg'),
+    ssid: q('.ssid'), tag: q('.tag'), standoff: q('.standoff'), connect: q('.b-connect'), disconnect: q('.b-disconnect'),
+    auto: q('.b-auto'), takeoff: q('.b-takeoff'), hover: q('.b-hover'), land: q('.b-land'), reset: q('.b-reset')};
+  const base = `/api/${d.iface}`;
+  r.connect.onclick = () => post(`${base}/connect`, {ssid: r.ssid.value.trim() || null});
+  r.disconnect.onclick = () => post(`${base}/disconnect`);
+  r.takeoff.onclick = () => post(`${base}/takeoff`);
+  r.hover.onclick = () => post(`${base}/hover`);
+  r.land.onclick = () => post(`${base}/land`);
+  r.auto.onclick = () => post(`${base}/auto`);
+  r.reset.onclick = () => post(`${base}/reset`);
+  armed(q('.b-estop'), () => post(`${base}/emergency`));
+  r.tag.onchange = () => post(`${base}/config`, {target_tag: r.tag.value});
+  r.standoff.onchange = () => post(`${base}/config`, {standoff: r.standoff.value});
+  r.team.onchange = () => post(`${base}/config`, {team: r.team.value});
+  tile.addEventListener('click', () => select(d.iface));
+  panel.addEventListener('click', e => { if (!e.target.closest('input')) select(d.iface); });
+  panel.querySelectorAll('[data-rc]').forEach(b => {
+    const v = b.dataset.rc.split(',').map(Number);
+    b.addEventListener('pointerdown', e => { e.preventDefault(); select(d.iface); padHeld = v; });
+    ['pointerup', 'pointerleave', 'pointercancel'].forEach(t => b.addEventListener(t, () => { padHeld = null; }));
+  });
+  r.ssid.value = d.drone || d.ssid || '';
+  r.tag.value = d.target_tag ?? '';
+  r.standoff.value = d.standoff;
+  r.reset.hidden = !d.sim;
+  return {tile, panel, r};
+}
+
+const FRAME_MS = 80;    // ~12 fps per tile at most
+function pull(iface, r) {
+  if (!r.live || !units[iface]) { r.pulling = false; r.img.hidden = true; r.ph.hidden = false; return; }
+  const t0 = Date.now();
+  const next = () => setTimeout(() => pull(iface, r), Math.max(0, FRAME_MS - (Date.now() - t0)));
+  r.img.onload = () => { r.img.hidden = false; r.ph.hidden = true; next(); };
+  r.img.onerror = () => setTimeout(() => pull(iface, r), 500);
+  r.img.src = `/snap/${iface}?t=${t0}`;
+}
+
+function placeholder(cls, i) {
+  const el = document.createElement('div');
+  el.className = cls + ' empty';
+  el.textContent = `slot ${i + 1} · no drone`;
+  return el;
+}
+
+// Rebuild the grid order only when the set of drones changes; empty slots pad to 4x2.
+function layout(drones) {
+  const ids = drones.map(d => d.iface);
+  if (ids.join() === order.join() && camsEl.children.length) return;
+  order = ids;
+  const slots = Math.max(MIN_SLOTS, Math.ceil(ids.length / COLS) * COLS);
+  camsEl.replaceChildren(); ctrlsEl.replaceChildren();
+  for (let i = 0; i < slots; i++) {
+    const u = units[ids[i]];
+    camsEl.appendChild(u ? u.tile : placeholder('tile', i));
+    ctrlsEl.appendChild(u ? u.panel : placeholder('panel', i));
+  }
+}
+
+function select(iface) {
+  selected = iface;
+  for (const [k, u] of Object.entries(units)) { u.tile.classList.toggle('selected', k === iface); u.panel.classList.toggle('selected', k === iface); }
+}
+
+function pill(el, text, cls) { el.textContent = text; el.className = 'pill ' + (el.classList.contains('p-link') ? 'p-link ' : 'p-mode ') + (cls || ''); }
+function chip(el, text, cls) { el.textContent = text; el.className = el.className.split(' ').slice(0, 2).join(' ') + (cls ? ' ' + cls : ''); el.hidden = !text; }
+
+function render(state) {
+  const ds = state.drones;
+  for (const d of ds) if (!units[d.iface]) units[d.iface] = makeUnit(d);
+  for (const k of Object.keys(units)) if (!ds.some(d => d.iface === k)) { delete units[k]; if (selected === k) selected = null; }
+  layout(ds);
+
+  const sim = ds.some(d => d.sim);
+  document.getElementById('simtag').hidden = !sim;
+  document.getElementById('stopsim').hidden = !sim;
+  document.getElementById('c-linked').textContent = ds.filter(d => d.link).length;
+  document.getElementById('c-flying').textContent = ds.filter(d => d.flying).length;
+  document.getElementById('c-tags').textContent = ds.filter(d => d.tags.some(t => t.id === d.target_tag)).length;
+  document.getElementById('c-slots').textContent = ds.length;
+  document.getElementById('c-teams').textContent =
+    `${ds.filter(d => d.team === 'attack').length} · ${ds.filter(d => d.team === 'defense').length}`;
+  renderTelemetry(state.telemetry);
+  document.getElementById('c-slots-l').textContent = sim ? 'simulated' : (ds.length === 1 ? 'dongle' : 'dongles');
+
+  ds.forEach((d, i) => {
+    const {tile, panel, r} = units[d.iface];
+    const n = String(i + 1);
+    r.tn.forEach(el => el.textContent = n); r.pn.textContent = n;
+    const batCls = d.battery == null ? '' : d.battery < 20 ? 'bad' : d.battery < 40 ? 'warn' : 'ok';
+    const seesTarget = d.tags.find(t => t.id === d.target_tag);
+
+    // camera tile
+    chip(r.tteam, d.team ? d.team.toUpperCase() : '', d.team);
+    chip(r.tname, d.name);
+    chip(r.tbat, d.battery != null ? `${d.battery}%` : '', batCls);
+    chip(r.tmode, d.flying || d.busy ? (d.busy || d.mode).toUpperCase() : (d.link ? 'ground' : 'offline'), d.flying ? 'warn' : (d.link ? '' : 'bad'));
+    chip(r.ttag, d.target_tag == null ? '' : `tag ${d.target_tag}` + (seesTarget ? (seesTarget.range ? ` · ${seesTarget.range} m` : ' ✓') : ' · not seen'), seesTarget ? 'ok' : '');
+    tile.classList.toggle('flying', d.flying);
+    r.ph.textContent = d.link ? 'waiting for video…' : (d.ssid ? `WiFi ${d.ssid}, no drone answer` : 'not connected');
+    // Snapshot loop per tile (see /snap in drone_gui.py): runs while frames are fresh.
+    r.live = d.streaming && d.video;
+    if (r.live && !r.pulling) { r.pulling = true; pull(d.iface, r); }
+
+    // control panel
+    r.name.textContent = d.name + (d.number != null && !d.sim ? ` · #${d.number}` : '');
+    r.name.title = `${d.iface}` + (d.ip ? ` · ${d.ip}` : '');
+    r.pteam.textContent = d.team || 'no team'; r.pteam.className = 'pill p-team ' + (d.team || '');
+    pill(r.link, d.link ? 'linked' : (d.ssid ? 'WiFi only' : 'no WiFi'), d.link ? 'ok' : (d.ssid ? 'warn' : 'bad'));
+    pill(r.mode, d.busy || d.mode, d.flying ? 'warn' : '');
+    r.cam.hidden = !d.provisional_cam;
+    r.bat.textContent = d.battery != null ? `${d.battery}%` : '–';
+    r.bat.style.color = batCls ? `var(--${batCls})` : '';
+    r.bat.title = d.temp != null ? `temperature ${d.temp} C` + (d.temp >= 85 ? ' - too hot, let it cool' : '') : '';
+    r.h.textContent = d.height != null ? `${d.height.toFixed(2)} m` : '–';
+    r.tags.textContent = d.tags.length ? d.tags.map(t => '#' + t.id).join(' ') : 'none';
+    r.air.textContent = d.airborne_s != null ? `${d.airborne_s} s` : '–';
+    r.msg.textContent = d.msg;
+    if (document.activeElement !== r.tag && d.target_tag != null && String(d.target_tag) !== r.tag.value) r.tag.value = d.target_tag;
+    r.connect.disabled = !!d.busy || (d.link && d.streaming);
+    r.disconnect.disabled = d.flying || !d.ssid;
+    r.takeoff.disabled = !d.link || d.flying || !!d.busy;
+    r.auto.disabled = !d.link || !!d.busy || d.target_tag == null;
+    r.hover.disabled = r.land.disabled = !d.flying;
+    r.reset.disabled = d.flying || !!d.busy;
+  });
+  if (!selected && ds.length) select(ds[0].iface);
+}
+
+const tToggle = document.getElementById('t-toggle'), tHz = document.getElementById('t-hz'),
+      tDest = document.getElementById('t-dest'), tStat = document.getElementById('t-stat');
+let telemOn = false;
+function renderTelemetry(t) {
+  if (!t) return;
+  telemOn = t.enabled;
+  tToggle.textContent = t.enabled ? 'ON' : 'off';
+  tToggle.className = t.enabled ? 'on' : '';
+  if (document.activeElement !== tHz) tHz.value = t.hz;
+  if (document.activeElement !== tDest) tDest.value = t.destinations.join(', ');
+  tStat.textContent = t.enabled ? `${t.rate} Hz · ${t.bytes} B · #${t.seq}` : 'not sending';
+  tStat.className = 't-stat' + (t.error ? ' bad' : t.warning ? ' warn' : '');
+  tStat.title = t.error || t.warning || `${t.sent} datagrams sent, ${t.errors} errors`;
+}
+async function telemetry(body) {
+  const res = await fetch('/api/telemetry', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body)});
+  if (!res.ok) { const e = await res.json(); tStat.textContent = e.error; tStat.className = 't-stat bad'; }
+}
+tToggle.onclick = () => telemetry({enabled: !telemOn});
+tHz.onchange = () => telemetry({hz: Number(tHz.value)});
+tDest.onchange = () => telemetry({destinations: tDest.value});
+
+let lastState = {drones: []};
+async function poll() {
+  try { lastState = await fetch('/api/state').then(r => r.json()); render(lastState); }
+  catch (e) { document.getElementById('c-linked').textContent = '?'; }
+}
+const pollTimer = setInterval(poll, 300); poll();
+
+// Manual flying: keys + pad build a stick vector, sent at 10 Hz to the selected drone.
+const keys = new Set();
+let padHeld = null;
+const KEYMAP = {w: [0,1,0,0], s: [0,-1,0,0], a: [-1,0,0,0], d: [1,0,0,0], ArrowUp: [0,0,1,0], ArrowDown: [0,0,-1,0], q: [0,0,0,-1], e: [0,0,0,1]};
+document.addEventListener('keydown', e => {
+  if (e.target.tagName === 'INPUT') return;
+  if (e.code === 'Space') { e.preventDefault(); post('/api/land_all'); return; }
+  if (/^[1-9]$/.test(e.key) && order[+e.key - 1]) { select(order[+e.key - 1]); return; }
+  const k = e.key.length === 1 ? e.key.toLowerCase() : e.key;
+  if (KEYMAP[k]) { e.preventDefault(); keys.add(k); }
+});
+document.addEventListener('keyup', e => { const k = e.key.length === 1 ? e.key.toLowerCase() : e.key; keys.delete(k); });
+window.addEventListener('blur', () => { keys.clear(); padHeld = null; });
+let wasMoving = false;
+setInterval(() => {
+  if (!selected) return;
+  const v = [0, 0, 0, 0];
+  for (const k of keys) KEYMAP[k].forEach((x, i) => v[i] += x);
+  if (padHeld) padHeld.forEach((x, i) => v[i] += x);
+  const moving = v.some(x => x);
+  if (moving || wasMoving) post(`/api/${selected}/rc`, {sticks: v.map(x => Math.max(-1, Math.min(1, x)) * MANUAL)});
+  wasMoving = moving;
+}, 100);
+
+document.getElementById('connectall').onclick = () => post('/api/connect_all');
+document.getElementById('landall').onclick = () => post('/api/land_all');
+document.getElementById('autoall').onclick = () => post('/api/auto_all');
+armed(document.getElementById('estopall'), () => post('/api/emergency_all'));
+armed(document.getElementById('stopsim'), async () => {
+  await post('/api/shutdown');
+  clearInterval(pollTimer);
+  document.body.innerHTML = '<p style="padding:40px;font:16px system-ui;color:#e6e8ee">Simulator stopped. ' +
+    'Start it again with <code>drone_gui.py --sim 8 --port 8781</code>, then reload this page.</p>';
+}, 'Again: stop sim');
+</script>
+</body>
+</html>

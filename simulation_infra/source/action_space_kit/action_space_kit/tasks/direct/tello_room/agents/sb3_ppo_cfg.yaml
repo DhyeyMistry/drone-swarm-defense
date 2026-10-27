@@ -1,0 +1,35 @@
+# SB3 PPO for AS-Tello-Room-v0: ONE central policy for all four drones (the laptop).
+#
+# central: true -> Sb3CentralVecEnv: one SB3 row per env; the policy sees the four drones'
+# positional blocks concatenated (4 x 24 = 96) and outputs all four drones' commands
+# (4 x [right, forward, up, yaw, land] = 20); its reward is the team reward (sum over drones).
+# History: frame_stack 8 -> the last 8 steps (~0.6 s) of all of it (8 x 96 = 768 inputs),
+# including every drone's own previous commands.
+# A rollout holds n_steps * num_envs = 256 * 512 = 131072 transitions.
+# gamma 0.995: a step is 74 ms and the spots are ~30 s away, so look ~15 s ahead.
+seed: 42
+central: true
+
+n_timesteps: !!float 1e8
+policy: 'MlpPolicy'
+n_steps: 256
+n_minibatches: 4
+gae_lambda: 0.95
+gamma: 0.995
+n_epochs: 5
+ent_coef: 0.005
+learning_rate: !!float 3e-4
+clip_range: 0.2
+policy_kwargs:
+  activation_fn: 'nn.ELU'
+  net_arch: [256, 256]
+  log_std_init: -0.5
+  squash_output: False
+vf_coef: 1.0
+max_grad_norm: 1.0
+target_kl: 0.02
+normalize_input: True
+normalize_value: False
+clip_obs: 10.0
+frame_stack: 8
+device: "cuda:0"

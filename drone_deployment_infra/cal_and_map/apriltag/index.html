@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AprilTag</title>
+<style>
+  :root { color-scheme: light; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: #fff; color: #111; font: 14px/1.3 ui-sans-serif, system-ui, sans-serif; }
+  body { display: flex; flex-direction: column; min-height: 100%; }
+  #stage { flex: 1; display: flex; align-items: center; justify-content: center; background: #fff; min-height: 0; overflow: auto; }
+  canvas { display: block; image-rendering: pixelated; background: #fff; }
+  #bar {
+    display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: center;
+    padding: 10px 14px; border-top: 1px solid #ddd; background: #f6f6f6;
+  }
+  label { display: flex; align-items: center; gap: 6px; }
+  input[type="number"] { width: 5.5rem; font: inherit; padding: 4px 6px; }
+  input[type="range"] { width: 140px; }
+  button { font: inherit; padding: 4px 10px; cursor: pointer; }
+  #meta { margin-left: auto; color: #444; font-variant-numeric: tabular-nums; }
+  body.hide-bar #bar { display: none; }
+  body.hide-bar { height: 100%; }
+</style>
+</head>
+<body>
+<div id="stage"><canvas id="tag" width="10" height="10"></canvas></div>
+<div id="bar">
+  <label>ID
+    <input id="id" type="number" min="0" max="586" value="0">
+  </label>
+  <button id="prev" type="button">Prev</button>
+  <button id="next" type="button">Next</button>
+  <label>Black mm
+    <input id="mm" type="number" min="8" max="2000" step="1" value="51">
+  </label>
+  <input id="mmrange" type="range" min="8" max="2000" step="1" value="51" aria-label="Black square millimeters">
+  <label><input id="fit" type="checkbox" checked> Fit screen</label>
+  <button id="full" type="button">Fullscreen</button>
+  <button id="png" type="button">Save PNG</button>
+  <span id="meta">tag36h11 · 0</span>
+</div>
+<script>
+/* Codes and bit layout from AprilRobotics/apriltag tag36h11 (University of Michigan, BSD).
+   Renderer matches apriltag_to_image: black field, 1px white quiet border, MSB-first bits. */
+const CODES = ["0000000d7e00984b","0000000dda664ca7","0000000dc4a1c821","0000000e17b470e9","0000000ef91d01b1","0000000f429cdd73","000000005da29225","00000001106cba43","0000000223bed79d","000000021f51213c","000000033eb19ca6","00000003f76eb0f8","0000000469a97414","000000045dcfe0b0","00000004a6465f72","000000051801db96","00000005eb946b4e","000000068a7cc2ec","00000006f0ba2652","000000078765559d","000000087b83d129","000000086cc4a5c5","00000008b64df90f","00000009c577b611","0000000a3810f2f5","0000000af4d75b83","0000000b59a03fef","0000000bb1096f85","0000000d1b92fc76","0000000d0dd509d2","0000000e2cfda160","00000002ff497c63","000000047240671b","00000005047a2e55","0000000635ca87c7","0000000691254166","000000068f43d94a","00000006ef24bdb6","00000008cdd8f886","00000009de96b718","0000000aff6e5a8a","0000000bae46f029","0000000d225b6d59","0000000df8ba8c01","0000000e3744a22f","0000000fbb59375d","000000018a916828","000000022f29c1ba","0000000286887d58","000000041392322e","000000075d18ecd1","000000087c302743","00000008c6317ba9","00000009e40f36d7","0000000c0e5a806a","0000000cc78cb87c","000000012d2f2d01","0000000379f36a21","00000006973f59ac","00000007789ea9f4","00000008f1c73e84","00000008dd287a20","000000094a4eee4c","0000000a455379b5","0000000a9e92987d","0000000bd25cb40b","0000000be98d3582","0000000d3d5972b2","000000014c53d7c7","00000004f1796936","00000004e71fed1a","000000066d46fae0","0000000a55abb933","0000000ebee1acca","00000001ad4ba6a4","0000000305b17571","0000000553611351","000000059ca62775","00000007819cb6a1","0000000edb7bc9eb","00000005b2694212","000000072e12d185","0000000ed6152e2c","00000005bcdadbf3","000000078e0aa0c6","0000000c60a0b909","0000000ef9a34b0d","0000000398a6621a","0000000a8a27c944","00000004b564304e","000000052902b4e2","0000000857280b56","0000000a91b2c84b","0000000e91df939b","00000001fa405f28","000000023793ab86","000000068c17729f","00000009fbf3b840","000000036922413c","00000004eb5f946e","0000000533fe2404","000000063de7d35e","0000000925eddc72","000000099b8b3896","0000000aace4c708","0000000c22994af0","00000008f1eae41b","0000000d95fb486c","000000013fb77857","00000004fe0983a3","0000000d559bf8a9","0000000e1855d78d","0000000fec8daaad","000000071ecb6d95","0000000dc9e50e4c","0000000ca3a4c259","0000000740d12bbf","0000000aeedd18e0","0000000b509b9c8e","00000005232fea1c","000000019282d18b","000000076c22d67b","0000000936beb34b","000000008a5ea8dd","0000000679eadc28","0000000a08e119c5","000000020a6e3e24","00000007eab9c239","000000096632c32e","0000000470d06e44","00000008a70212fb","00000000a7e4251b","00000009ec762cc0","0000000d8a3a1f48","0000000db680f346","00000004a1e93a9d","0000000638ddc04f","00000004c2fcc993","000000001ef28c95","0000000bf0d9792d","00000006d27557c3","0000000623f977f4","000000035b43be57","0000000bb0c428d5","0000000a6f01474d","00000005a70c9749","000000020ddabc3b","00000002eabd78cf","000000090aa18f88","0000000a9ea89350","00000003cdb39b22","0000000839a08f34","0000000169bb814e","00000001a575ab08","0000000a04d3d5a2","0000000bf7902f2b","0000000095a5e65c","000000092e8fce94","000000067ef48d12","00000006400dbcac","0000000b12d8fb9f","00000000347f45d3","0000000b35826f56","0000000c546ac6e4","000000081cc35b66","000000041d14bd57","00000000c052b168","00000007d6ce5018","0000000ab4ed5ede","00000005af817119","0000000d1454b182","00000002badb090b","000000003fcb4c0c","00000002f1c28fd8","000000093608c6f7","00000004c93ba2b5","000000007d950a5d","0000000e54b3d3fc","000000015560cf9d","0000000189e4958a","000000062140e9d2","0000000723bc1cdb","00000002063f26fa","0000000fa08ab19f","00000007955641db","0000000646b01daa","000000071cd427cc","000000009a42f7d4","0000000717edc643","000000015eb94367","00000008392e6bb2","0000000832408542","00000002b9b874be","0000000b21f4730d","0000000b5d8f24c9","00000007dbaf6931","00000001b4e33629","000000013452e710","0000000e974af612","00000001df61d29a","000000099f2532ad","0000000e50ec71b4","00000005df0a36e8","00000004934e4cea","0000000e34a0b4bd","0000000b7b26b588","00000000f255118d","0000000d0c8fa31e","000000006a50c94f","0000000f28aa9f06","0000000131d194d8","0000000622e3da79","0000000ac7478303","0000000c8f2521d7","00000006c9c881f5","000000049e38b60a","0000000513d8df65","0000000d7c2b0785","00000009f6f9d75a","00000009f6966020","00000001e1a54e33","0000000c04d63419","0000000946e04cd7","00000001bdac5902","000000056469b830","0000000ffad59569","000000086970e7d8","00000008a4b41e12","0000000ad4688e3b","000000085f8f5df4","0000000d833a0893","00000002a36fdd7c","0000000d6a857cf2","00000008829bc35c","00000005e50d79bc","0000000fbb8035e4","0000000c1a95bebf","0000000036b0baf8","0000000e0da964ea","0000000b6483689b","00000007c8e2f4c1","00000005b856a23b","00000002fc183995","0000000e914b6d70","0000000b31041969","00000001bb478493","0000000063e2b456","0000000f2a082b9c","00000008e5e646ea","000000008172f8f6","00000000dacd923e","0000000e5dcf0e2e","0000000bf9446bae","00000004822d50d1","000000026e710bf5","0000000b90ba2a24","0000000f3b25aa73","0000000809ad589b","000000094cc1e254","00000005334a3adb","0000000592886b2f","0000000bf64704aa","0000000566dbf24c","000000072203e692","000000064e61e809","0000000d7259aad6","00000007b924aedc","00000002df2184e8","0000000353d1eca7","0000000fce30d7ce","0000000f7b0f436e","000000057e8d8f68","00000008c79e60db","00000009c8362b2b","000000063a5804f2","00000009298353dc","00000006f98a71c8","0000000a5731f693","000000021ca5c870","00000001c2107fd3","00000006181f6c39","000000019e574304","0000000329937606","0000000043d5c70d","00000009b18ff162","00000008e2ccfebf","000000072b7b9b54","00000009b71f4f3c","0000000935d7393e","000000065938881a","00000006a5bd6f2d","0000000a19783306","0000000e6472f4d7","000000081163df5a","0000000a838e1cbd","0000000982748477","0000000050c54feb","00000000d82fbb58","00000002c4c72799","000000097d259ad6","000000022d9a43ed","0000000fdb162a9f","00000000cb4a727d","00000004fae2e371","0000000535b5be8b","000000048795908a","0000000ce7c18962","00000004ea154d80","000000050c064889","00000008d97fc75d","0000000c8bd9ec61","000000083ee8e8bb","0000000c8431419a","00000001aa78079d","00000008111aa4a5","0000000dfa3a69fe","000000051630d83f","00000002d930fb3f","00000002133116e5","0000000ae5395522","0000000bc07a4e8a","000000057bf08ba0","00000006cb18036a","0000000f0e2e4b75","00000003eb692b6f","0000000d8178a3fa","0000000238cce6a6","0000000e97d5cdd7","0000000fe10d8d5e","0000000b39584a1d","0000000ca03536fd","0000000aa61f3998","000000072ff23ec2","000000015aa7d770","000000057a3a1282","0000000d1f3902dc","00000006554c9388","0000000fd01283c7","0000000e8baa42c5","000000072cee6adf","0000000f6614b3fa","000000095c3778a2","00000007da4cea7a","0000000d18a5912c","0000000d116426e5","000000027c17bc1c","0000000b95b53bc1","0000000c8f937a05","0000000ed220c9bd","00000000c97d72ab","00000008fb1217ae","000000025ca8a5a1","0000000b261b871b","00000001bef0a056","0000000806a51179","0000000eed249145","00000003f82aeceb","0000000cc56e9acf","00000002e78d01eb","0000000102cee17f","000000037caad3d5","000000016ac5b1ee","00000002af164ece","0000000d4cd81dc9","000000012263a7e7","000000057ac7d117","00000009391d9740","00000007aedaa77f","00000009675a3c72","0000000277f25191","0000000ebb6e64b9","00000007ad3ef747","000000012759b181","0000000948257d4d","0000000b63a850f6","00000003a52a8f75","00000004a019532c","0000000a021a7529","0000000cc661876d","00000004085afd05","0000000e7048e089","00000003f979cdc6","0000000d9da9071b","0000000ed2fc5b68","000000079d64c3a1","0000000fd44e2361","00000008eea46a74","000000042233b9c2","0000000ae4d1765d","00000007303a094c","00000002d7033abe","00000003dcc2b0b4","00000000f0967d09","000000006f0cd7de","000000009807aca0","00000003a295cad3","00000002b106b202","00000003f38a828e","000000078af46596","0000000bda2dc713","00000009a8c8c9d9","00000006a0f2ddce","0000000a76af6fe2","0000000086f66fa4","0000000d52d63f8d","000000089f7a6e73","0000000cc6b23362","0000000b4ebf3c39","0000000564f300fa","0000000e8de3a706","000000079a033b61","0000000765e160c5","0000000a266a4f85","0000000a68c38c24","0000000dca0711fb","000000085fba85ba","000000037a207b46","0000000158fcc4d0","00000000569d79b3","00000007b1a25555","0000000a8ae22468","00000007c592bdfd","00000000c59a5f66","0000000b1115daa3","0000000f17c87177","00000006769d766b","00000002b637356d","000000013d8685ac","0000000f24cb6ec0","00000000bd0b56d1","000000042ff0e26d","0000000b41609267","000000096f9518af","0000000c56f96636","00000004a8e10349","0000000863512171","0000000ea455d86c","0000000bd0e25279","0000000e65e3f761","000000036c84a922","000000085fd1b38f","0000000657c91539","000000015033fe04","000000009051c921","0000000ab27d80d8","0000000f92f7d0a1","00000008eb6bb737","000000010b5b0f63","00000006c9c7ad63","0000000f66fe70ae","0000000ca579bd92","0000000956198e4d","000000029e4405e5","0000000e44eb885c","000000041612456c","0000000ea45e0abf","0000000d326529bd","00000007b2c33cef","000000080bc9b558","00000007169b9740","0000000c37f99209","000000031ff6dab9","0000000c795190ed","0000000a7636e95f","00000009df075841","000000055a083932","0000000a7cbdf630","0000000409ea4ef0","000000092a1991b6","00000004b078dee9","0000000ae18ce9e4","00000005a6e1ef35","00000001a403bd59","000000031ea70a83","00000002bc3c4f3a","00000005c921b3cb","0000000042da05c5","00000001f667d16b","0000000416a368cf","0000000fbc0a7a3b","00000009419f0c7c","000000081be2fa03","000000034e2c172f","000000028648d8ae","0000000c7acbb885","000000045f31eb6a","0000000d1cfc0a7b","000000042c4d260d","0000000cf6584097","000000094b132b14","00000003c5c5df75","00000008ae596fef","0000000aea8054eb","00000000ae9cc573","0000000496fb731b","0000000ebf105662","0000000af9c83a37","0000000c0d64cd6b","00000007b608159a","0000000e74431642","0000000d6fb9d900","0000000291e99de0","000000010500ba9a","00000005cd05d037","0000000a87254fb2","00000009d7824a37","00000008b2c7b47c","000000030c788145","00000002f4e5a8be","0000000badb884da","0000000026e0d5c9","00000006fdbaa32e","000000034758eb31","0000000565cd1b4f","00000002bfd90fb0","0000000093052a6b","0000000d3c13c4b9","00000002daea43bf","0000000a279762bc","0000000f1bd9f22c","00000004b7fec94f","0000000545761d5a","00000007327df411","00000001b52a442e","000000049b0ce108","000000024c764bc8","0000000374563045","0000000a3e8f91c6","00000000e6bd2241","0000000e0e52ee3c","000000007e8e3caa","000000096c2b7372","000000033acbdfda","0000000b15d91e54","0000000464759ac1","00000006886a1998","000000057f5d3958","00000005a1f5c1f5","00000000b58158ad","0000000e712053fb","00000005352ddb25","0000000414b98ea0","000000074f89f546","000000038a56b3c3","000000038db0dc17","0000000aa016a755","0000000dc72366f5","00000000cee93d75","0000000b2fe7a56b","0000000a847ed390","00000008713ef88c","0000000a217cc861","00000008bca25d7b","0000000455526818","0000000ea3a7a180","0000000a9536e5e0","00000009b64a1975","00000005bfc756bc","0000000046aa169b","000000053a17f76f","00000004d6815274","0000000cca9cf3f6","00000004013fcb8b","00000003d26cdfa5","00000005786231f7","00000007d4ab09ab","0000000960b5ffbc","00000008914df0d4","00000002fc6f2213","0000000ac235637e","0000000151b28ed3","000000046f79b6db","00000001382e0c9f","000000053abf983a","0000000383c47ade","00000003fcf88978","0000000eb9079df7","000000009af0714d","0000000da19d1bb7","00000009a02749f8","00000001c62dab9b","00000001a137e44b","00000002867718c7","000000035815525b","00000007cd35c550","00000002164f73a0","0000000e8b772fe0"];
+const BIT_X = [1,2,3,4,5,2,3,4,3,6,6,6,6,6,5,5,5,4,6,5,4,3,2,5,4,3,4,1,1,1,1,1,2,2,2,3];
+const BIT_Y = [1,1,1,1,1,2,2,2,3,1,2,3,4,5,2,3,4,3,6,6,6,6,6,5,5,5,4,6,5,4,3,2,5,4,3,4];
+const NBITS = 36;
+const WIDTH_AT_BORDER = 8;
+const TOTAL = 10;
+
+const canvas = document.getElementById("tag");
+const idInput = document.getElementById("id");
+const mmInput = document.getElementById("mm");
+const mmRange = document.getElementById("mmrange");
+const fitInput = document.getElementById("fit");
+const meta = document.getElementById("meta");
+const CSS_PX_PER_MM = 96 / 25.4;
+const BLACK_MODULES = WIDTH_AT_BORDER;
+
+function dpr() {
+  return window.devicePixelRatio || 1;
+}
+
+function clampMm(n) {
+  if (!Number.isFinite(n)) return 51;
+  return Math.min(2000, Math.max(8, n));
+}
+
+function setMmInputs(mm) {
+  const v = String(Math.round(clampMm(mm)));
+  mmInput.value = v;
+  mmRange.value = v;
+}
+
+function modulePxForBlackMm(blackMm) {
+  const cssPx = (blackMm / BLACK_MODULES) * CSS_PX_PER_MM;
+  return Math.max(1, Math.round(cssPx * dpr()));
+}
+
+function blackMmForModulePx(m) {
+  return (m / dpr()) / CSS_PX_PER_MM * BLACK_MODULES;
+}
+
+function cellsFor(id) {
+  const code = BigInt("0x" + CODES[id]);
+  const cells = new Uint8Array(TOTAL * TOTAL);
+  const whiteBorderWidth = WIDTH_AT_BORDER + 2;
+  const whiteBorderStart = (TOTAL - whiteBorderWidth) / 2;
+  for (let i = 0; i < whiteBorderWidth - 1; i++) {
+    cells[whiteBorderStart * TOTAL + whiteBorderStart + i] = 1;
+    cells[(whiteBorderStart + i) * TOTAL + TOTAL - 1 - whiteBorderStart] = 1;
+    cells[(TOTAL - 1 - whiteBorderStart) * TOTAL + whiteBorderStart + i + 1] = 1;
+    cells[(whiteBorderStart + 1 + i) * TOTAL + whiteBorderStart] = 1;
+  }
+  const borderStart = (TOTAL - WIDTH_AT_BORDER) / 2;
+  for (let i = 0; i < NBITS; i++) {
+    if ((code >> BigInt(NBITS - i - 1)) & 1n) {
+      const x = BIT_X[i] + borderStart;
+      const y = BIT_Y[i] + borderStart;
+      cells[y * TOTAL + x] = 1;
+    }
+  }
+  return cells;
+}
+
+function modulePx() {
+  if (!fitInput.checked) return modulePxForBlackMm(clampMm(Number(mmInput.value)));
+  const bar = document.getElementById("bar");
+  const barH = document.body.classList.contains("hide-bar") ? 0 : bar.offsetHeight;
+  const availCss = Math.min(window.innerWidth, window.innerHeight - barH) - 48;
+  const availDev = Math.max(TOTAL, availCss * dpr());
+  return Math.max(1, Math.floor(availDev / TOTAL));
+}
+
+function draw() {
+  let id = Number(idInput.value);
+  if (!Number.isFinite(id)) id = 0;
+  id = Math.max(0, Math.min(CODES.length - 1, Math.trunc(id)));
+  idInput.value = String(id);
+  const m = modulePx();
+  const blackMm = blackMmForModulePx(m);
+  if (fitInput.checked) setMmInputs(blackMm);
+  const size = TOTAL * m;
+  canvas.width = size;
+  canvas.height = size;
+  const css = size / dpr();
+  canvas.style.width = css + "px";
+  canvas.style.height = css + "px";
+  const ctx = canvas.getContext("2d");
+  ctx.imageSmoothingEnabled = false;
+  const cells = cellsFor(id);
+  for (let y = 0; y < TOTAL; y++) {
+    for (let x = 0; x < TOTAL; x++) {
+      ctx.fillStyle = cells[y * TOTAL + x] ? "#fff" : "#000";
+      ctx.fillRect(x * m, y * m, m, m);
+    }
+  }
+  meta.textContent = "tag36h11 · id " + id
+    + " · black " + blackMm.toFixed(0) + " mm"
+    + " · module " + m + " px"
+    + " · tag-size " + (blackMm / 1000).toFixed(3) + " m";
+  const url = new URL(location.href);
+  url.searchParams.set("id", String(id));
+  url.searchParams.set("mm", String(Math.round(blackMm)));
+  history.replaceState(null, "", url);
+}
+
+function onMmEdit() {
+  fitInput.checked = false;
+  setMmInputs(clampMm(Number(mmInput.value)));
+  draw();
+}
+
+idInput.addEventListener("input", draw);
+mmInput.addEventListener("change", onMmEdit);
+mmRange.addEventListener("input", () => {
+  mmInput.value = mmRange.value;
+  onMmEdit();
+});
+fitInput.addEventListener("change", draw);
+document.getElementById("prev").addEventListener("click", () => { idInput.value = String(Number(idInput.value) - 1); draw(); });
+document.getElementById("next").addEventListener("click", () => { idInput.value = String(Number(idInput.value) + 1); draw(); });
+document.getElementById("png").addEventListener("click", () => {
+  const a = document.createElement("a");
+  a.href = canvas.toDataURL("image/png");
+  a.download = "tag36h11_" + idInput.value + ".png";
+  a.click();
+});
+document.getElementById("full").addEventListener("click", async () => {
+  document.body.classList.add("hide-bar");
+  draw();
+  const el = document.documentElement;
+  if (!document.fullscreenElement) await el.requestFullscreen();
+});
+document.addEventListener("fullscreenchange", () => {
+  if (!document.fullscreenElement) document.body.classList.remove("hide-bar");
+  draw();
+});
+window.addEventListener("resize", draw);
+window.addEventListener("keydown", (e) => {
+  if (e.target === idInput || e.target === mmInput) return;
+  if (e.key === "ArrowRight" || e.key === "ArrowUp") { idInput.value = String(Number(idInput.value) + 1); draw(); }
+  if (e.key === "ArrowLeft" || e.key === "ArrowDown") { idInput.value = String(Number(idInput.value) - 1); draw(); }
+  if (e.key === "f") document.getElementById("full").click();
+  if (e.key === "Escape" && document.body.classList.contains("hide-bar") && !document.fullscreenElement) {
+    document.body.classList.remove("hide-bar");
+    draw();
+  }
+});
+
+const params = new URL(location.href).searchParams;
+const start = params.get("id");
+if (start !== null && start !== "") idInput.value = start;
+const startMm = params.get("mm");
+if (startMm !== null && startMm !== "") {
+  fitInput.checked = false;
+  setMmInputs(Number(startMm));
+}
+draw();
+</script>
+</body>
+</html>

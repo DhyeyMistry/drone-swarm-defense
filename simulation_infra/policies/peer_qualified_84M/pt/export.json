@@ -1,0 +1,10 @@
+{
+  "source_checkpoint": "/home/jaimeromero/Action_Space_policy_fixes/simulation_infra/outputs/qualified_four_drone_policy/model.zip",
+  "source_sha256": "603768969b32d4bb70a67f73d6a31aed28fd0ee112d18eb39163a3264d02ef08",
+  "normalizer": "model_vecnormalize.pkl",
+  "policy_sha256": "6b746c41acbc2a301b527de84528dd7627f8c5e0080d4eea00a65761745c7e33",
+  "obs_dim": 384,
+  "act_dim": 5,
+  "frame_stack": 8,
+  "max_abs_error_vs_ppo": 0.0
+}

@@ -1,0 +1,55 @@
+# The one drone registry: which drones exist, their roles, which are quick-connected
+# for tests, and each drone's calibration identity. The dongle -> drone wiring (which
+# USB stick flies which drone, its MAC and video port) is separate, in dongles.json,
+# because tello_dongle_setup.py writes that file as you plug sticks in.
+#
+# Drone names in `roles`/`quick_connect` must match the `drone` field in dongles.json
+# and the camera configs config/camera/<drone>.yaml.
+
+fly_count: 5            # drones in the full swarm we intend to fly
+
+roles:
+  attack:               # attacking drones (fly the track)
+    - TELLO-3
+    - TELLO-4
+    - TELLO-5
+  defense:              # defense drones
+    - TELLO-1
+    - TELLO-2
+
+# Quick-connect drones: THE source of which drones a drone_deployment_tests script
+# flies. A test connects to whichever of these have their USB stick plugged in right
+# now -- two listed and present -> both fly, one -> one flies. Set this list to the
+# drones you want a test to use. Also brought up first for calibration and mapping.
+quick_connect:
+  - TELLO-5
+
+# Per-drone calibration identity, used by the cal_and_map pipeline (focal-length
+# calibration, mapping, localization). Keyed by the lowercase name the cal scripts
+# take as --drone (e.g. `tello_3`). iface/ssid also live in dongles.json; these entries
+# add the drone's AP identity so a calibration session can prove it's talking to the
+# right drone before it streams.
+#   iface:    interface connected to this drone's network
+#   ssid:     the drone's Wi-Fi name
+#   bssid:    the drone's access-point MAC (hardware identity); find it with
+#             nmcli -f SSID,BSSID dev wifi list ifname <iface>
+#   serial:   null        -> unknown; the script prints the sn? reply and exits
+#             unsupported -> firmware has no sn? (SDK 1.3); identity rests on bssid
+#             "0TQZ..."   -> must equal the sn? reply exactly
+#   local_ip: optional; our IP on 192.168.10.0/24. null = look it up from iface.
+drones:
+  tello_4:
+    iface: wlx58d8125ecf0d
+    ssid: TELLO-4
+    bssid: "60:60:1F:C7:43:9F"
+    serial: unsupported
+    local_ip: null
+    notes: "TP-Link Archer T2U PLUS (RTL8821AU, rtw88_8821au driver)"
+
+  tello_3:
+    iface: wlx6c4cbce33375
+    ssid: TELLO-3
+    bssid: "60:60:1F:C7:2B:E0"
+    serial: unsupported
+    local_ip: null
+    notes: "Wi-Fi Stick 3"

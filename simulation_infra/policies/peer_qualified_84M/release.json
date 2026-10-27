@@ -1,0 +1,89 @@
+{
+  "created_at": "2026-10-15T03:29:43.758603+00:00",
+  "model": "model.zip",
+  "normalizer": "model_vecnormalize.pkl",
+  "model_sha256": "603768969b32d4bb70a67f73d6a31aed28fd0ee112d18eb39163a3264d02ef08",
+  "normalizer_sha256": "0f488c99b5abd3fb7ede159c812365107b68f1c5c936ceacc41ed7a612ad5eb3",
+  "architecture": "Shared per-drone frozen pilot plus learned bounded-mean correction",
+  "observation_values": 384,
+  "history_frames": 8,
+  "actions": [
+    "right",
+    "forward",
+    "up",
+    "yaw",
+    "land"
+  ],
+  "num_drones": 4,
+  "policy_rate_hz": 13.513513513513514,
+  "physics_collision_check_hz": 500.0,
+  "peer_order_version": 2,
+  "bound_mean": true,
+  "held_out_qualification": {
+    "episodes": 1024,
+    "seeds": [
+      17291,
+      41423,
+      89519,
+      130073
+    ],
+    "distinct_assignments": 24,
+    "all_four_successes": 1019,
+    "joint_success_rate": 0.9951171875,
+    "joint_success_wilson_95": [
+      0.9886206977231168,
+      0.9979126358177713
+    ],
+    "collision_failures": 5,
+    "crash_failures": 0,
+    "timeouts": 0,
+    "success_mean_duration_s": 17.67670480262075,
+    "qualification_passed": true,
+    "qualification": "Observed simulation reliability; does not establish real-flight reliability."
+  },
+  "independent_verification": {
+    "independent_record_audit_passed": true,
+    "episodes": 1024,
+    "all_four_successes": 1019,
+    "joint_success_rate": 0.9951171875,
+    "collision_failures": 5,
+    "crash_failures": 0,
+    "timeouts": 0,
+    "off_pad_trials": 0,
+    "assignment_permutations": 24,
+    "successful_drone_touchdowns": 4076,
+    "mean_touchdown_error_m": 0.09411403892354553,
+    "p95_touchdown_error_m": 0.16864176839590073,
+    "max_touchdown_error_m": 0.26054176688194275,
+    "mean_success_duration_s": 17.67670480262075,
+    "minimum_successful_separation_m": 0.27253958582878113,
+    "full_room_floor_starts_and_original_challenge_verified": true,
+    "original_model_and_normalizer_hashes_verified": true,
+    "selected_model_normalizer_and_asset_hashes_verified": true,
+    "evaluation_source_archive_hashes_verified": 204,
+    "selected_pipeline_passed": true,
+    "qualification_passed": true,
+    "video_visual_review_passed": true,
+    "video_reviewed_frames_s": [
+      3.0,
+      9.0,
+      16.5,
+      19.2
+    ],
+    "terminal_hud_all_four_landed_verified": true,
+    "package_model_and_normalizer_hashes_verified": true
+  },
+  "scope": "Unarmed indoor four-drone simulation; not a real-flight reliability claim.",
+  "demo": {
+    "video": "demo.mp4",
+    "report": "demo.json",
+    "seed": 7,
+    "all_four_success": true,
+    "duration_s": 17.464,
+    "minimum_separation_m": 0.5035189390182495,
+    "mean_touchdown_error_m": 0.06314957141876221,
+    "video_sha256": "54a48c58963c9b6196645d43cffabb9aa20464e5bb71f5d698ca3c16ea61a630",
+    "visual_review_passed": true,
+    "terminal_hud_verified": true
+  }
+}
