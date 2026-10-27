@@ -1,0 +1,22 @@
+name: tests
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  our-defense:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          pip install numpy pyyaml opencv-python-headless pupil-apriltags av pytest
+          pip install --no-deps -e drone_deployment_infra/cal_and_map
+      - name: Test
+        working-directory: drone_deployment_infra/our_defense
+        run: python -m pytest -v tests

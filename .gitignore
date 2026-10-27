@@ -95,3 +95,6 @@ outputs/
 *.bak
 drone_deployment_infra/swarm_ops/logs/
 __pycache__/
+
+# drone-swarm-defense: our test suite (the kit ignores every tests/ folder above)
+!drone_deployment_infra/our_defense/tests/

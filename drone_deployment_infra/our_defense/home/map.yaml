@@ -1,0 +1,20 @@
+origin_tag: 10
+frame: 'origin tag: x right, y up, z out of the tag face; meters'
+tags:
+  10:
+    R:
+    - - 1.0
+      - 0.0
+      - 0.0
+    - - 0.0
+      - 1.0
+      - 0.0
+    - - 0.0
+      - 0.0
+      - 1.0
+    t:
+    - 0.0
+    - 0.0
+    - 0.0
+    seen: 0
+    samples: 0

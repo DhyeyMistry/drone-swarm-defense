@@ -1,0 +1,43 @@
+# Settings for `python defend.py` (the organizers run it with no arguments).
+# Any command-line flag overrides the value here. Relative paths are relative to this file.
+
+# --- who is who ---------------------------------------------------------------------
+defenders: [TELLO-2, TELLO-3, TELLO-5]   # <-- OUR drones (names from config/dongles.json). CHECK before the round.
+attackers: auto                          # auto = every drone in the feed that isn't ours and isn't team "defense"
+                                         # or a list: [TELLO-8, TELLO-9] (drone8 / 8 work too)
+
+# --- flight mode --------------------------------------------------------------------
+fly: true                                # true = take off and defend. `defend.py --dry_run` overrides for tests.
+seconds: 600                             # land everything after this many seconds
+
+# --- the venue ----------------------------------------------------------------------
+map: ../config/map.yaml                  # the repo's room map (drone_deployment_infra/config/map.yaml),
+                                         # written by swarm_ops/map_tags.py (its default --out)
+tags: ../config/tags.yaml                # the repo's black-square sizes (now incl. 11, 12, 22-25)
+tag10_height_m: auto                     # auto = from the floor tags in map.yaml (or a number in m)
+site: auto                               # the table: auto = just behind the V (or the starting line)
+site_behind_m: 0.3                       # ...this far behind the rearmost defender's start (m)
+ignore_tags: "2,7,11,12,23"              # moved since map.yaml was made (24 Oct MAP CHECK); others auto-dropped
+fence_margin: 0.4                        # flight box = area spanned by the tags in map.yaml, pulled in this much (m)
+
+# --- attacker feed ------------------------------------------------------------------
+feed: auto                               # auto = swarm_policies.py bus (formation/drone<N>) + drone_gui telemetry
+swarm_hub: auto                          # auto = find the running swarm_policies.py
+feed_port: 9100                          # the UDP port drone_gui sends to
+feed_frame: readme                       # check once with feed_check.py
+feed_height: h                           # attacker height from its own height sensor
+
+# --- behaviour ------------------------------------------------------------------------
+formation: v                             # hold in a V in front of v_tag, tip toward tag 10 (or: home)
+v_tag: 23                                # the V sits in front of this tag
+v_front_m: 0.8                           # tip this far in front of v_tag (toward tag 10)
+v_width_m: 1.2                           # outer defenders this far apart
+v_depth_m: 0.6                           # arms trail this far behind the tip
+speed_cap: 0.35                          # m/s, at most 0.5
+max_lead_s: 0.0                          # aim at the attacker's CURRENT position (raise, e.g. 1.0, to lead it)
+latency_s: 0.0                           # extra lag compensation in the aim (s)
+climb_cm: 30                             # climb after takeoff so the tag comes into view
+advance_cm: 50                           # then fly this far forward toward tag 10 for better tag fixes
+log_every_s: 1.0                         # print all defenders + attackers every second
+first_fix_s: 30                          # after takeoff: search this long for a first tag, then land
+lost_timeout_s: 30                       # tag lost: hover at tag height + widening yaw search this long, then land
